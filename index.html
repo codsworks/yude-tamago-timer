@@ -657,6 +657,7 @@
       let firstAlarmPlayed = false;
       let isFinished = false;
       let audioContext = null;
+      let wakeLock = null;
       let selectedSound = Number.isFinite(savedSound) ? savedSound : 1;
 
       const formatTime = (seconds) => {
@@ -710,6 +711,29 @@
         toastEl.textContent = message;
         toastEl.classList.add("show");
         window.setTimeout(() => toastEl.classList.remove("show"), 4200);
+      };
+
+      const requestWakeLock = async () => {
+        if (!("wakeLock" in navigator) || wakeLock || document.hidden) return;
+
+        try {
+          wakeLock = await navigator.wakeLock.request("screen");
+          wakeLock.addEventListener("release", () => {
+            wakeLock = null;
+          });
+        } catch {
+          wakeLock = null;
+        }
+      };
+
+      const releaseWakeLock = async () => {
+        if (!wakeLock) return;
+
+        try {
+          await wakeLock.release();
+        } catch {
+          wakeLock = null;
+        }
       };
 
       const updateSoundSelection = () => {
@@ -841,6 +865,7 @@
         isFinished = false;
         startButton.textContent = "スタート";
         startButton.classList.remove("reset");
+        releaseWakeLock();
         clearTimerState();
         setRunning(false);
         updateIdleDisplay();
@@ -852,6 +877,7 @@
           timerId = null;
         }
         isFinished = false;
+        releaseWakeLock();
         clearTimerState();
         setRunning(false);
         updateIdleDisplay();
@@ -876,6 +902,7 @@
         sampleButtons.forEach((button) => {
           button.disabled = true;
         });
+        releaseWakeLock();
         saveTimerState();
         if (playSound) {
           playAlarmSound(7);
@@ -915,6 +942,7 @@
 
       const startTimer = async () => {
         ensureAudioContext();
+        requestWakeLock();
 
         firstAlarmPlayed = false;
         startedAt = Date.now();
@@ -957,6 +985,7 @@
         }
 
         setRunning(true);
+        requestWakeLock();
         tick(true);
         timerId = window.setInterval(tick, 250);
         return true;
@@ -1002,7 +1031,10 @@
       }
 
       document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) catchUpTimer();
+        if (!document.hidden) {
+          if (timerId && !isFinished) requestWakeLock();
+          catchUpTimer();
+        }
       });
       window.addEventListener("focus", catchUpTimer);
       window.addEventListener("pageshow", catchUpTimer);
