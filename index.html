@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ゆで卵タイマー</title>
+    <meta name="theme-color" content="#ffbf3f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ゆで卵タイマー" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon-512.png" type="image/png" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icon-512.png" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #263238;
+        --muted: #66727a;
+        --cream: #fff8dc;
+        --egg: #fff2b6;
+        --yolk: #ffbf3f;
+        --pot: #54b7c8;
+        --pot-dark: #287c91;
+        --heat: #ff6f59;
+        --leaf: #71bc78;
+        --panel: rgba(255, 255, 255, 0.88);
+        --shadow: 0 22px 60px rgba(45, 55, 72, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", Meiryo,
+          system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 18%, rgba(255, 191, 63, 0.34) 0 120px, transparent 121px),
+          radial-gradient(circle at 92% 10%, rgba(113, 188, 120, 0.24) 0 150px, transparent 151px),
+          linear-gradient(135deg, #fff1a8 0%, #ffd3bb 46%, #b6ecf0 100%);
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .app {
+        width: min(430px, 100%);
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 10px 12px 14px;
+        display: grid;
+        gap: 8px;
+        align-content: start;
+      }
+
+      .hero {
+        display: grid;
+        gap: 2px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.72rem, 9vw, 2.4rem);
+        line-height: 1;
+        letter-spacing: 0;
+        text-align: center;
+      }
+
+      .kitchen {
+        position: relative;
+        min-height: 118px;
+        display: grid;
+        place-items: center;
+      }
+
+      .steam {
+        position: absolute;
+        top: 0;
+        width: 14px;
+        height: 36px;
+        border-radius: 50%;
+        border-left: 5px solid rgba(255, 255, 255, 0.76);
+        animation: steam 2.7s ease-in-out infinite;
+      }
+
+      .steam:nth-child(1) {
+        left: 32%;
+      }
+
+      .steam:nth-child(2) {
+        left: 48%;
+        height: 46px;
+        animation-delay: 0.55s;
+      }
+
+      .steam:nth-child(3) {
+        left: 64%;
+        animation-delay: 1.05s;
+      }
+
+      @keyframes steam {
+        0%, 100% {
+          opacity: 0.3;
+          transform: translateY(14px) scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: translateY(-12px) scale(1.08);
+        }
+      }
+
+      .pot-scene {
+        position: relative;
+        width: min(226px, 72vw);
+        aspect-ratio: 1.24;
+      }
+
+      .lid {
+        position: absolute;
+        left: 19%;
+        top: 25%;
+        width: 62%;
+        height: 15%;
+        border-radius: 55% 55% 18% 18%;
+        background: #7ed6df;
+        border: 5px solid var(--pot-dark);
+        transform: rotate(-3deg);
+        z-index: 4;
+      }
+
+      .lid::before {
+        content: "";
+        position: absolute;
+        left: 42%;
+        top: -18px;
+        width: 16%;
+        height: 20px;
+        border-radius: 999px 999px 10px 10px;
+        background: var(--yolk);
+        border: 4px solid #a7602c;
+      }
+
+      .pot {
+        position: absolute;
+        left: 12%;
+        right: 12%;
+        bottom: 20%;
+        height: 42%;
+        border-radius: 0 0 46px 46px;
+        background: linear-gradient(145deg, #70d3e0 0%, var(--pot) 54%, #3fa1b5 100%);
+        border: 5px solid var(--pot-dark);
+        box-shadow: var(--shadow);
+        z-index: 3;
+        overflow: hidden;
+      }
+
+      .pot::before {
+        content: "";
+        position: absolute;
+        inset: 12px 18px auto;
+        height: 26%;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.32);
+      }
+
+      .pot::after {
+        content: "";
+        position: absolute;
+        left: 12%;
+        right: 12%;
+        bottom: 10px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(38, 50, 56, 0.14);
+      }
+
+      .handle {
+        position: absolute;
+        top: 48%;
+        width: 17%;
+        height: 22%;
+        border: 5px solid var(--pot-dark);
+        border-radius: 999px;
+        z-index: 2;
+      }
+
+      .handle.left {
+        left: 0;
+      }
+
+      .handle.right {
+        right: 0;
+      }
+
+      .egg {
+        position: absolute;
+        width: 20%;
+        aspect-ratio: 0.78;
+        border-radius: 52% 52% 46% 46%;
+        background: linear-gradient(155deg, #fffef3 0%, var(--egg) 100%);
+        border: 4px solid #d2a95a;
+        box-shadow: 0 12px 0 rgba(38, 50, 56, 0.08);
+        z-index: 5;
+        display: grid;
+        place-items: center;
+      }
+
+      .egg::before,
+      .egg::after {
+        content: "";
+        position: absolute;
+        top: 40%;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ink);
+      }
+
+      .egg::before {
+        left: 31%;
+      }
+
+      .egg::after {
+        right: 31%;
+      }
+
+      .egg .mouth {
+        width: 13px;
+        height: 7px;
+        margin-top: 16px;
+        border-bottom: 3px solid var(--heat);
+        border-radius: 0 0 999px 999px;
+      }
+
+      .egg.one {
+        left: 30%;
+        top: 28%;
+        transform: rotate(-13deg);
+      }
+
+      .egg.two {
+        right: 24%;
+        top: 33%;
+        transform: rotate(11deg);
+      }
+
+      .flame {
+        position: absolute;
+        bottom: 7%;
+        width: 15%;
+        aspect-ratio: 0.72;
+        border-radius: 58% 58% 58% 12%;
+        background: linear-gradient(145deg, #ffd166, var(--heat) 70%);
+        transform: rotate(45deg);
+        animation: flame 0.72s ease-in-out infinite alternate;
+        z-index: 1;
+      }
+
+      .flame:nth-last-child(3) {
+        left: 34%;
+      }
+
+      .flame:nth-last-child(2) {
+        left: 48%;
+        animation-delay: 0.16s;
+      }
+
+      .flame:nth-last-child(1) {
+        left: 61%;
+        animation-delay: 0.32s;
+      }
+
+      @keyframes flame {
+        from {
+          transform: translateY(7px) rotate(45deg) scale(0.92);
+        }
+        to {
+          transform: translateY(-3px) rotate(45deg) scale(1.05);
+        }
+      }
+
+      .timer-panel {
+        background: var(--panel);
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 12px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .time {
+        margin: 0 0 8px;
+        font-size: clamp(2.05rem, 12vw, 3rem);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        font-weight: 950;
+        text-align: center;
+      }
+
+      .instruction {
+        margin: 0 0 10px;
+        padding: 10px;
+        border-radius: 16px;
+        background: #fff8d8;
+        border: 2px solid rgba(255, 191, 63, 0.6);
+      }
+
+      .instruction-label {
+        display: block;
+        margin-bottom: 3px;
+        color: #a45f15;
+        font-size: 0.78rem;
+        font-weight: 950;
+      }
+
+      .instruction-text {
+        margin: 0;
+        color: #3f4a50;
+        font-size: 0.94rem;
+        line-height: 1.45;
+        font-weight: 900;
+        white-space: pre-line;
+      }
+
+      .controls,
+      .doneness,
+      .alarm-samples {
+        display: grid;
+        gap: 8px;
+      }
+
+      .controls {
+        grid-template-columns: 1.25fr 0.75fr;
+        margin-top: 10px;
+      }
+
+      .button {
+        min-height: 64px;
+        border: 0;
+        border-radius: 15px;
+        padding: 10px 12px;
+        color: #fff;
+        background: var(--ink);
+        font-weight: 950;
+        box-shadow: 0 5px 0 rgba(38, 50, 56, 0.14);
+        cursor: pointer;
+        transition:
+          transform 0.16s ease,
+          box-shadow 0.16s ease,
+          opacity 0.16s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 rgba(38, 50, 56, 0.14);
+      }
+
+      .button:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 rgba(38, 50, 56, 0.14);
+      }
+
+      .button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .start {
+        background: #ff7f51;
+      }
+
+      .start.reset {
+        background: #2f9e74;
+      }
+
+      .stop {
+        background: #52616b;
+      }
+
+      .doneness {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+      }
+
+      .choice {
+        min-height: 62px;
+        border: 2px solid #d9edf0;
+        border-radius: 14px;
+        padding: 7px 4px;
+        background: linear-gradient(180deg, #ffffff 0%, #eaf8fb 100%);
+        color: var(--ink);
+        font-weight: 950;
+        cursor: pointer;
+        line-height: 1.25;
+        box-shadow: 0 4px 0 rgba(40, 124, 145, 0.18);
+        transition:
+          transform 0.16s ease,
+          box-shadow 0.16s ease,
+          border-color 0.16s ease,
+          background 0.16s ease;
+      }
+
+      .choice:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 0 rgba(40, 124, 145, 0.18);
+      }
+
+      .choice:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 rgba(40, 124, 145, 0.18);
+      }
+
+      .choice span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .choice.active {
+        color: #4a2b00;
+      }
+
+      .choice:nth-child(1).active {
+        border-color: #cf6d12;
+        background: linear-gradient(180deg, #ffb24a 0%, #f08a1a 100%);
+        box-shadow: 0 4px 0 rgba(147, 77, 12, 0.38);
+      }
+
+      .choice:nth-child(2).active {
+        border-color: #c99c00;
+        background: linear-gradient(180deg, #ffd95a 0%, #f3bc18 100%);
+        box-shadow: 0 4px 0 rgba(139, 105, 0, 0.34);
+      }
+
+      .choice:nth-child(3).active {
+        border-color: #d4c24f;
+        background: linear-gradient(180deg, #fff4a5 0%, #ead95f 100%);
+        box-shadow: 0 4px 0 rgba(130, 118, 32, 0.3);
+      }
+
+      .choice:disabled {
+        color: #7f8a91;
+        background: #eef2f3;
+        border-color: #d5dcdf;
+        box-shadow: none;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .choice:disabled span {
+        color: #98a2a8;
+      }
+
+      .choice.active:disabled {
+        color: #4a2b00;
+        opacity: 1;
+      }
+
+      .choice:nth-child(1).active:disabled {
+        border-color: #cf6d12;
+        background: linear-gradient(180deg, #ffb24a 0%, #f08a1a 100%);
+        box-shadow: 0 4px 0 rgba(147, 77, 12, 0.38);
+      }
+
+      .choice:nth-child(2).active:disabled {
+        border-color: #c99c00;
+        background: linear-gradient(180deg, #ffd95a 0%, #f3bc18 100%);
+        box-shadow: 0 4px 0 rgba(139, 105, 0, 0.34);
+      }
+
+      .choice:nth-child(3).active:disabled {
+        border-color: #d4c24f;
+        background: linear-gradient(180deg, #fff4a5 0%, #ead95f 100%);
+        box-shadow: 0 4px 0 rgba(130, 118, 32, 0.3);
+      }
+
+      .alarm-samples {
+        grid-template-columns: repeat(4, 1fr);
+        margin-top: 10px;
+        gap: 7px;
+      }
+
+      .sample {
+        min-height: 44px;
+        border: 2px solid #d9edf0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff 0%, #eef9fb 100%);
+        color: var(--ink);
+        font-weight: 950;
+        box-shadow: 0 4px 0 rgba(40, 124, 145, 0.18);
+        cursor: pointer;
+      }
+
+      .sample.active {
+        color: #fff;
+        border-color: #287c91;
+        background: linear-gradient(180deg, #58bed0 0%, #2f93a8 100%);
+        box-shadow: 0 4px 0 rgba(32, 97, 113, 0.34);
+      }
+
+      .sample:disabled {
+        color: #7f8a91;
+        background: #eef2f3;
+        border-color: #d5dcdf;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      .sample.active:disabled {
+        color: #fff;
+        border-color: #287c91;
+        background: linear-gradient(180deg, #58bed0 0%, #2f93a8 100%);
+        box-shadow: 0 4px 0 rgba(32, 97, 113, 0.34);
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        width: min(520px, calc(100% - 32px));
+        padding: 16px 18px;
+        border-radius: 20px;
+        background: #263238;
+        color: #fff;
+        box-shadow: var(--shadow);
+        font-weight: 950;
+        text-align: center;
+        transform: translate(-50%, 130%);
+        opacity: 0;
+        transition:
+          transform 0.22s ease,
+          opacity 0.22s ease;
+        z-index: 10;
+      }
+
+      .toast.show {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+
+      @media (max-width: 360px) {
+        .app {
+          padding-inline: 10px;
+        }
+
+        .doneness {
+          grid-template-columns: 1fr;
+        }
+
+        .choice {
+          min-height: 50px;
+        }
+
+        .sample {
+          min-height: 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero" aria-labelledby="title">
+        <div>
+          <h1 id="title">ゆで卵タイマー</h1>
+        </div>
+
+        <div class="kitchen" aria-hidden="true">
+          <span class="steam"></span>
+          <span class="steam"></span>
+          <span class="steam"></span>
+          <div class="pot-scene">
+            <div class="lid"></div>
+            <div class="handle left"></div>
+            <div class="handle right"></div>
+            <div class="egg one"><span class="mouth"></span></div>
+            <div class="egg two"><span class="mouth"></span></div>
+            <div class="pot"></div>
+            <span class="flame"></span>
+            <span class="flame"></span>
+            <span class="flame"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="timer-panel" aria-label="タイマー操作">
+        <div class="time" id="time">08:00</div>
+
+        <div class="instruction" aria-live="polite">
+          <span class="instruction-label" id="instructionLabel">準備</span>
+          <p class="instruction-text" id="instructionText">
+            1. 鍋に1cmの水を入れる
+            2. 冷蔵庫から卵をだして鍋にいれる
+            3. 鍋を火にかける
+            4. 沸騰したら中火にして蓋をする
+            5. スタートをタップ
+          </p>
+        </div>
+
+        <div class="doneness" role="group" aria-label="卵の固さ">
+          <button class="choice" type="button" data-after="180" data-debug-after="6">
+            半熟
+          </button>
+          <button class="choice active" type="button" data-after="240" data-debug-after="8">
+            すこし半熟
+          </button>
+          <button class="choice" type="button" data-after="300" data-debug-after="10">
+            完熟
+          </button>
+        </div>
+
+        <div class="alarm-samples" role="group" aria-label="アラーム音サンプル">
+          <button class="sample active" type="button" data-sound="1" aria-label="アラーム音サンプル1">♪1</button>
+          <button class="sample" type="button" data-sound="2" aria-label="アラーム音サンプル2">♪2</button>
+          <button class="sample" type="button" data-sound="3" aria-label="アラーム音サンプル3">♪3</button>
+          <button class="sample" type="button" data-sound="4" aria-label="アラーム音サンプル4">♪4</button>
+        </div>
+
+        <div class="controls">
+          <button class="button start" id="start" type="button">スタート</button>
+          <button class="button stop" id="stop" type="button" disabled>ストップ</button>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      const IS_DEBUG = new URLSearchParams(window.location.search).has("debug");
+      const FIRST_ALARM_SECONDS = IS_DEBUG ? 8 : 4 * 60;
+
+      const timeEl = document.querySelector("#time");
+      const startButton = document.querySelector("#start");
+      const stopButton = document.querySelector("#stop");
+      const choiceButtons = [...document.querySelectorAll(".choice")];
+      const sampleButtons = [...document.querySelectorAll(".sample")];
+      const instructionLabelEl = document.querySelector("#instructionLabel");
+      const instructionTextEl = document.querySelector("#instructionText");
+      const toastEl = document.querySelector("#toast");
+
+      const ALARM_VOLUME = 1;
+      const savedSoundText = localStorage.getItem("eggTimerSound");
+      const savedSound = savedSoundText === null ? 1 : Number(savedSoundText);
+      let afterBoilSeconds = IS_DEBUG ? 8 : 4 * 60;
+      let remainingSeconds = FIRST_ALARM_SECONDS + afterBoilSeconds;
+      let timerId = null;
+      let startedAt = 0;
+      let endsAt = 0;
+      let firstAlarmAt = 0;
+      let firstAlarmPlayed = false;
+      let isFinished = false;
+      let audioContext = null;
+      let selectedSound = Number.isFinite(savedSound) ? savedSound : 1;
+
+      const formatTime = (seconds) => {
+        const safeSeconds = Math.max(0, Math.ceil(seconds));
+        const minutes = String(Math.floor(safeSeconds / 60));
+        const rest = String(safeSeconds % 60).padStart(2, "0");
+        return `${minutes}:${rest}`;
+      };
+
+      const totalSeconds = () => FIRST_ALARM_SECONDS + afterBoilSeconds;
+
+      const afterSecondsFor = (button) =>
+        Number(IS_DEBUG ? button.dataset.debugAfter : button.dataset.after);
+
+      const updateInstruction = (label, text) => {
+        instructionLabelEl.textContent = label;
+        instructionTextEl.textContent = text;
+      };
+
+      const clearTimerState = () => {
+        localStorage.removeItem("eggTimerState");
+      };
+
+      const saveTimerState = () => {
+        if (!timerId && !isFinished) return;
+
+        localStorage.setItem(
+          "eggTimerState",
+          JSON.stringify({
+            afterBoilSeconds,
+            endsAt,
+            firstAlarmAt,
+            firstAlarmPlayed,
+            isFinished,
+            selectedSound,
+            startedAt,
+          })
+        );
+      };
+
+      const updateIdleDisplay = () => {
+        remainingSeconds = totalSeconds();
+        timeEl.textContent = formatTime(FIRST_ALARM_SECONDS);
+        updateInstruction(
+          "準備",
+          "1. 鍋に1cmの水を入れる\n2. 冷蔵庫から卵をだして鍋にいれる\n3. 鍋を火にかける\n4. 沸騰したら中火にして蓋をする\n5. スタートをタップ"
+        );
+      };
+
+      const showToast = (message) => {
+        toastEl.textContent = message;
+        toastEl.classList.add("show");
+        window.setTimeout(() => toastEl.classList.remove("show"), 4200);
+      };
+
+      const updateSoundSelection = () => {
+        sampleButtons.forEach((button) => {
+          button.classList.toggle("active", Number(button.dataset.sound) === selectedSound);
+        });
+      };
+
+      const ensureAudioContext = async () => {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return false;
+
+        try {
+          audioContext ||= new AudioContextClass();
+          if (audioContext.state === "suspended") {
+            await audioContext.resume();
+          }
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      const playTone = (frequency, startsAt, duration, type = "sine", volume = 0.44, endFrequency = frequency) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, startsAt);
+        if (endFrequency !== frequency) {
+          oscillator.frequency.exponentialRampToValueAtTime(endFrequency, startsAt + duration * 0.82);
+        }
+
+        gain.gain.setValueAtTime(0.0001, startsAt);
+        gain.gain.exponentialRampToValueAtTime(volume * ALARM_VOLUME, startsAt + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startsAt + duration);
+        oscillator.connect(gain).connect(audioContext.destination);
+        oscillator.start(startsAt);
+        oscillator.stop(startsAt + duration + 0.03);
+      };
+
+      const playAlarmSound = async (count = 2) => {
+        const canPlay = await ensureAudioContext();
+        if (!canPlay) return;
+
+        const now = audioContext.currentTime;
+
+        const playPattern = (offset, notes) => {
+          notes.forEach((note) => {
+            playTone(
+              note.frequency,
+              now + offset + note.at,
+              note.duration,
+              note.type,
+              note.volume,
+              note.endFrequency ?? note.frequency
+            );
+          });
+        };
+
+        if (selectedSound === 2) {
+          for (let i = 0; i < count; i += 1) {
+            playPattern(i * 0.62, [
+              { frequency: 988, at: 0, duration: 0.09, type: "triangle", volume: 0.3 },
+              { frequency: 1319, at: 0.1, duration: 0.09, type: "triangle", volume: 0.28 },
+              { frequency: 988, at: 0.2, duration: 0.09, type: "triangle", volume: 0.3 },
+              { frequency: 1568, at: 0.32, duration: 0.18, type: "sine", volume: 0.24 },
+            ]);
+          }
+          return;
+        }
+
+        if (selectedSound === 3) {
+          for (let i = 0; i < count; i += 1) {
+            playPattern(i * 0.7, [
+              { frequency: 698, at: 0, duration: 0.48, type: "sine", volume: 0.26, endFrequency: 660 },
+              { frequency: 1397, at: 0.02, duration: 0.34, type: "sine", volume: 0.16, endFrequency: 1319 },
+              { frequency: 2093, at: 0.05, duration: 0.22, type: "triangle", volume: 0.08 },
+            ]);
+          }
+          return;
+        }
+
+        if (selectedSound === 4) {
+          for (let i = 0; i < count; i += 1) {
+            playPattern(i * 0.82, [
+              { frequency: 392, at: 0, duration: 0.16, type: "triangle", volume: 0.3 },
+              { frequency: 523, at: 0.14, duration: 0.16, type: "triangle", volume: 0.32 },
+              { frequency: 659, at: 0.28, duration: 0.16, type: "triangle", volume: 0.32 },
+              { frequency: 1047, at: 0.44, duration: 0.28, type: "sine", volume: 0.26 },
+              { frequency: 1319, at: 0.44, duration: 0.28, type: "sine", volume: 0.14 },
+            ]);
+          }
+          return;
+        }
+
+        for (let i = 0; i < count; i += 1) {
+          playPattern(i * 0.6, [
+            { frequency: 523, at: 0, duration: 0.13, type: "sine", volume: 0.32 },
+            { frequency: 784, at: 0.11, duration: 0.16, type: "sine", volume: 0.36 },
+            { frequency: 1047, at: 0.25, duration: 0.24, type: "triangle", volume: 0.3 },
+            { frequency: 2093, at: 0.3, duration: 0.14, type: "sine", volume: 0.12 },
+          ]);
+        }
+      };
+
+      const setRunning = (isRunning) => {
+        if (isRunning) {
+          isFinished = false;
+          startButton.textContent = "スタート";
+          startButton.classList.remove("reset");
+        }
+
+        startButton.disabled = isRunning;
+        stopButton.disabled = !isRunning;
+        choiceButtons.forEach((button) => {
+          button.disabled = isRunning;
+        });
+        sampleButtons.forEach((button) => {
+          button.disabled = isRunning;
+        });
+      };
+
+      const resetTimer = () => {
+        if (timerId) {
+          window.clearInterval(timerId);
+          timerId = null;
+        }
+        isFinished = false;
+        startButton.textContent = "スタート";
+        startButton.classList.remove("reset");
+        clearTimerState();
+        setRunning(false);
+        updateIdleDisplay();
+      };
+
+      const stopTimer = (message = "タイマーをストップしました") => {
+        if (timerId) {
+          window.clearInterval(timerId);
+          timerId = null;
+        }
+        isFinished = false;
+        clearTimerState();
+        setRunning(false);
+        updateIdleDisplay();
+        showToast(message);
+      };
+
+      const finishTimer = ({ playSound = true } = {}) => {
+        window.clearInterval(timerId);
+        timerId = null;
+        remainingSeconds = 0;
+        firstAlarmPlayed = true;
+        timeEl.textContent = "00:00";
+        updateInstruction("完成", "卵を冷やしてから殻をむく\n熱いので気をつけて 🥚");
+        isFinished = true;
+        startButton.disabled = false;
+        startButton.textContent = "リセット";
+        startButton.classList.add("reset");
+        stopButton.disabled = true;
+        choiceButtons.forEach((button) => {
+          button.disabled = true;
+        });
+        sampleButtons.forEach((button) => {
+          button.disabled = true;
+        });
+        saveTimerState();
+        if (playSound) {
+          playAlarmSound(7);
+          showToast("完成！卵を冷やしましょう 🥚");
+        }
+      };
+
+      const tick = (isCatchUp = false) => {
+        const now = Date.now();
+        remainingSeconds = (endsAt - now) / 1000;
+
+        if (!firstAlarmPlayed && now >= firstAlarmAt) {
+          firstAlarmPlayed = true;
+          updateInstruction("火を消す", "火を消してアラームが鳴るまで蒸らす");
+          if (!isCatchUp || remainingSeconds > 0) {
+            playAlarmSound(4);
+            showToast("火を消してください");
+          }
+        }
+
+        if (remainingSeconds <= 0) {
+          finishTimer();
+          return;
+        }
+
+        if (!firstAlarmPlayed) {
+          const firstRemaining = (firstAlarmAt - now) / 1000;
+          timeEl.textContent = formatTime(firstRemaining);
+          updateInstruction("加熱中", "アラームを待つ");
+        } else {
+          timeEl.textContent = formatTime(remainingSeconds);
+          updateInstruction("火を消す", "火を消してアラームが鳴るまで蒸らす");
+        }
+
+        saveTimerState();
+      };
+
+      const startTimer = async () => {
+        ensureAudioContext();
+
+        firstAlarmPlayed = false;
+        startedAt = Date.now();
+        firstAlarmAt = startedAt + FIRST_ALARM_SECONDS * 1000;
+        endsAt = startedAt + totalSeconds() * 1000;
+        setRunning(true);
+        saveTimerState();
+        tick();
+        timerId = window.setInterval(tick, 250);
+      };
+
+      const restoreTimerState = () => {
+        const savedState = localStorage.getItem("eggTimerState");
+        if (!savedState) return false;
+
+        try {
+          const state = JSON.parse(savedState);
+          afterBoilSeconds = Number(state.afterBoilSeconds);
+          endsAt = Number(state.endsAt);
+          firstAlarmAt = Number(state.firstAlarmAt);
+          firstAlarmPlayed = Boolean(state.firstAlarmPlayed);
+          isFinished = Boolean(state.isFinished);
+          selectedSound = Number(state.selectedSound) || selectedSound;
+          startedAt = Number(state.startedAt);
+        } catch {
+          clearTimerState();
+          return false;
+        }
+
+        updateSoundSelection();
+
+        if (isFinished) {
+          finishTimer({ playSound: false });
+          return true;
+        }
+
+        if (Date.now() >= endsAt) {
+          finishTimer();
+          return true;
+        }
+
+        setRunning(true);
+        tick(true);
+        timerId = window.setInterval(tick, 250);
+        return true;
+      };
+
+      const catchUpTimer = () => {
+        if (!timerId || isFinished) return;
+        tick(true);
+      };
+
+      choiceButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          afterBoilSeconds = afterSecondsFor(button);
+          choiceButtons.forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          clearTimerState();
+          updateIdleDisplay();
+        });
+      });
+
+      sampleButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedSound = Number(button.dataset.sound);
+          localStorage.setItem("eggTimerSound", String(selectedSound));
+          updateSoundSelection();
+          playAlarmSound(2);
+        });
+      });
+
+      startButton.addEventListener("click", () => {
+        if (isFinished) {
+          resetTimer();
+          return;
+        }
+
+        startTimer();
+      });
+      stopButton.addEventListener("click", () => stopTimer());
+
+      updateSoundSelection();
+      if (!restoreTimerState()) {
+        updateIdleDisplay();
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) catchUpTimer();
+      });
+      window.addEventListener("focus", catchUpTimer);
+      window.addEventListener("pageshow", catchUpTimer);
+      window.addEventListener("pagehide", saveTimerState);
+
+    </script>
+  </body>
+</html>
