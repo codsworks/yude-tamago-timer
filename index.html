@@ -889,7 +889,7 @@
         timerId = null;
         remainingSeconds = 0;
         firstAlarmPlayed = true;
-        timeEl.textContent = "00:00";
+        timeEl.textContent = formatTime(0);
         updateInstruction("完成", "卵を冷やしてから殻をむく\n熱いので気をつけて 🥚");
         isFinished = true;
         startButton.disabled = false;
