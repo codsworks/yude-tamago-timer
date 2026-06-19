@@ -643,7 +643,15 @@
       const ALARM_VOLUME = 1;
       const savedSoundText = localStorage.getItem("eggTimerSound");
       const savedSound = savedSoundText === null ? 1 : Number(savedSoundText);
-      let afterBoilSeconds = IS_DEBUG ? 8 : 4 * 60;
+      const savedAfterText = localStorage.getItem("eggTimerAfterSeconds");
+      const savedAfterSeconds = savedAfterText === null ? 240 : Number(savedAfterText);
+      const savedAfterButton =
+        choiceButtons.find((button) => button.dataset.after === String(savedAfterSeconds)) ||
+        choiceButtons.find((button) => button.classList.contains("active")) ||
+        choiceButtons[1];
+      let afterBoilSeconds = Number(
+        IS_DEBUG ? savedAfterButton.dataset.debugAfter : savedAfterButton.dataset.after
+      );
       let remainingSeconds = FIRST_ALARM_SECONDS + afterBoilSeconds;
       let timerId = null;
       let startedAt = 0;
@@ -666,6 +674,16 @@
 
       const afterSecondsFor = (button) =>
         Number(IS_DEBUG ? button.dataset.debugAfter : button.dataset.after);
+
+      const updateChoiceSelection = () => {
+        const selectedAfterSeconds = IS_DEBUG
+          ? choiceButtons.find((button) => afterSecondsFor(button) === afterBoilSeconds)?.dataset.after
+          : String(afterBoilSeconds);
+
+        choiceButtons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.after === selectedAfterSeconds);
+        });
+      };
 
       const updateInstruction = (label, text) => {
         instructionLabelEl.textContent = label;
@@ -984,6 +1002,7 @@
         }
 
         updateSoundSelection();
+        updateChoiceSelection();
 
         if (isFinished) {
           finishTimer({ playSound: false });
@@ -1010,8 +1029,8 @@
       choiceButtons.forEach((button) => {
         button.addEventListener("click", () => {
           afterBoilSeconds = afterSecondsFor(button);
-          choiceButtons.forEach((item) => item.classList.remove("active"));
-          button.classList.add("active");
+          localStorage.setItem("eggTimerAfterSeconds", button.dataset.after);
+          updateChoiceSelection();
           clearTimerState();
           updateIdleDisplay();
         });
@@ -1037,6 +1056,7 @@
       stopButton.addEventListener("click", () => stopTimer());
 
       updateSoundSelection();
+      updateChoiceSelection();
       registerServiceWorker();
       if (!restoreTimerState()) {
         updateIdleDisplay();
