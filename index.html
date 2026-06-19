@@ -658,6 +658,7 @@
       let audioContext = null;
       let wakeLock = null;
       let selectedSound = Number.isFinite(savedSound) ? savedSound : 1;
+      let notificationRegistrationPromise = null;
 
       const formatTime = (seconds) => {
         const safeSeconds = Math.max(0, Math.ceil(seconds));
@@ -678,6 +679,72 @@
 
       const clearTimerState = () => {
         localStorage.removeItem("eggTimerState");
+      };
+
+      const isNotificationAvailable = () => {
+        return "serviceWorker" in navigator && "Notification" in window;
+      };
+
+      const isPwaMode = () => {
+        return (
+          window.matchMedia("(display-mode: standalone)").matches ||
+          window.navigator.standalone === true
+        );
+      };
+
+      const registerNotificationWorker = async () => {
+        if (!isNotificationAvailable() || window.location.protocol === "file:") return null;
+
+        notificationRegistrationPromise ||= navigator.serviceWorker.register("./sw.js");
+        return notificationRegistrationPromise;
+      };
+
+      const requestNotificationPermission = async () => {
+        if (!isNotificationAvailable()) return false;
+
+        if (Notification.permission === "granted") return true;
+        if (Notification.permission === "denied") return false;
+
+        try {
+          const permission = await Notification.requestPermission();
+          return permission === "granted";
+        } catch {
+          return false;
+        }
+      };
+
+      const initializeNotifications = async () => {
+        if (!isNotificationAvailable() || window.location.protocol === "file:") return;
+
+        try {
+          await registerNotificationWorker();
+          if (isPwaMode()) {
+            await requestNotificationPermission();
+          }
+        } catch (error) {
+          console.error("Notification setup failed", error);
+        }
+      };
+
+      const sendNotification = async (message) => {
+        if (!isNotificationAvailable() || Notification.permission !== "granted") return;
+
+        try {
+          const registration = await registerNotificationWorker();
+          await navigator.serviceWorker.ready;
+          await registration.showNotification("ゆで卵タイマー", {
+            body: message,
+            badge: "./icon-512.png",
+            icon: "./icon-512.png",
+            tag: "yude-tamago-timer",
+            renotify: true,
+            data: {
+              url: new URL("./", window.location.href).href,
+            },
+          });
+        } catch (error) {
+          console.error("Notification send failed", error);
+        }
       };
 
       const saveTimerState = () => {
@@ -710,6 +777,7 @@
         toastEl.textContent = message;
         toastEl.classList.add("show");
         window.setTimeout(() => toastEl.classList.remove("show"), 4200);
+        sendNotification(message);
       };
 
       const requestWakeLock = async () => {
@@ -1025,6 +1093,7 @@
       stopButton.addEventListener("click", () => stopTimer());
 
       updateSoundSelection();
+      initializeNotifications();
       if (!restoreTimerState()) {
         updateIdleDisplay();
       }
