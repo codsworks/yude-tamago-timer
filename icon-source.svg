@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ゆで卵タイマー アイコン</title>
+  <desc id="desc">タイトル画像の卵と同じ形状のPWAアイコン</desc>
+  <defs>
+    <linearGradient id="eggShell" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffefa" />
+      <stop offset="1" stop-color="#fff0b4" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#ffffff" />
+  <g transform="translate(76 12) scale(4)">
+    <path
+      d="M45 9 C68 9 87 39 87 69 C87 96 70 113 45 113 C20 113 3 96 3 69 C3 39 22 9 45 9 Z"
+      fill="url(#eggShell)"
+      stroke="#d7a648"
+      stroke-width="4.7"
+    />
+    <circle cx="37" cy="63" r="4" fill="#263238" />
+    <circle cx="55" cy="63" r="4" fill="#263238" />
+    <path d="M37 77 Q46 84 55 77" fill="none" stroke="#ff7f51" stroke-width="5" stroke-linecap="round" />
+  </g>
+</svg>
