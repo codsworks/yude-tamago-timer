@@ -718,9 +718,6 @@
 
         try {
           await registerNotificationWorker();
-          if (isPwaMode()) {
-            await requestNotificationPermission();
-          }
         } catch (error) {
           console.error("Notification setup failed", error);
         }
@@ -938,7 +935,7 @@
         updateIdleDisplay();
       };
 
-      const stopTimer = (message = "タイマーをストップしました") => {
+      const stopTimer = () => {
         if (timerId) {
           window.clearInterval(timerId);
           timerId = null;
@@ -948,7 +945,6 @@
         clearTimerState();
         setRunning(false);
         updateIdleDisplay();
-        showToast(message);
       };
 
       const finishTimer = ({ playSound = true } = {}) => {
@@ -1008,6 +1004,8 @@
       };
 
       const startTimer = async () => {
+        await requestNotificationPermission();
+
         ensureAudioContext();
         requestWakeLock();
 
