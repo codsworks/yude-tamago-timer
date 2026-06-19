@@ -545,6 +545,87 @@
         opacity: 1;
       }
 
+      .install-prompt {
+        display: none;
+        gap: 8px;
+        padding: 10px;
+        border: 2px solid rgba(40, 124, 145, 0.32);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 12px 30px rgba(45, 55, 72, 0.2);
+      }
+
+      .install-prompt.show {
+        display: grid;
+      }
+
+      .install-prompt {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+      }
+
+      .install-guide {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        z-index: 11;
+        width: min(398px, calc(100% - 24px));
+        display: none;
+        gap: 8px;
+        padding: 10px;
+        border: 2px solid rgba(40, 124, 145, 0.32);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 12px 30px rgba(45, 55, 72, 0.2);
+        transform: translateX(-50%);
+      }
+
+      .install-guide.show {
+        display: grid;
+      }
+
+      .install-text,
+      .install-guide-text {
+        margin: 0;
+        color: #3f4a50;
+        font-size: 0.82rem;
+        line-height: 1.35;
+        font-weight: 900;
+      }
+
+      .install-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .install-button,
+      .install-close {
+        min-height: 38px;
+        border: 0;
+        border-radius: 12px;
+        font-weight: 950;
+        cursor: pointer;
+      }
+
+      .install-button {
+        padding: 8px 12px;
+        color: #fff;
+        background: #2f93a8;
+        box-shadow: 0 3px 0 rgba(32, 97, 113, 0.26);
+      }
+
+      .install-close {
+        width: 38px;
+        padding: 0;
+        color: #52616b;
+        background: #eef2f3;
+      }
+
+      .install-guide {
+        grid-template-columns: 1fr auto;
+        align-items: start;
+      }
+
       @media (max-width: 360px) {
         .app {
           padding-inline: 10px;
@@ -589,6 +670,14 @@
         </div>
       </section>
 
+      <div class="install-prompt" id="installPrompt" role="status" aria-live="polite">
+        <p class="install-text" id="installText">ホーム画面に追加できます</p>
+        <div class="install-actions">
+          <button class="install-button" id="installButton" type="button">追加</button>
+          <button class="install-close" id="installDismiss" type="button" aria-label="閉じる">×</button>
+        </div>
+      </div>
+
       <section class="timer-panel" aria-label="タイマー操作">
         <div class="time" id="time">08:00</div>
 
@@ -629,6 +718,13 @@
       </section>
     </main>
 
+    <div class="install-guide" id="installGuide" role="dialog" aria-modal="true" aria-label="ホーム画面に追加">
+      <p class="install-guide-text">
+        共有ボタンから「ホーム画面に追加」を選びます
+      </p>
+      <button class="install-close" id="installGuideClose" type="button" aria-label="閉じる">×</button>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -643,10 +739,17 @@
       const instructionLabelEl = document.querySelector("#instructionLabel");
       const instructionTextEl = document.querySelector("#instructionText");
       const toastEl = document.querySelector("#toast");
+      const installPromptEl = document.querySelector("#installPrompt");
+      const installTextEl = document.querySelector("#installText");
+      const installButton = document.querySelector("#installButton");
+      const installDismissButton = document.querySelector("#installDismiss");
+      const installGuideEl = document.querySelector("#installGuide");
+      const installGuideCloseButton = document.querySelector("#installGuideClose");
 
       const ALARM_VOLUME = 1;
       const savedSoundText = localStorage.getItem("eggTimerSound");
       const savedSound = savedSoundText === null ? 1 : Number(savedSoundText);
+      const INSTALL_DISMISSED_KEY = "eggTimerInstallDismissed";
       let afterBoilSeconds = IS_DEBUG ? 8 : 4 * 60;
       let remainingSeconds = FIRST_ALARM_SECONDS + afterBoilSeconds;
       let timerId = null;
@@ -658,7 +761,7 @@
       let audioContext = null;
       let wakeLock = null;
       let selectedSound = Number.isFinite(savedSound) ? savedSound : 1;
-      let notificationRegistrationPromise = null;
+      let deferredInstallPrompt = null;
 
       const formatTime = (seconds) => {
         const safeSeconds = Math.max(0, Math.ceil(seconds));
@@ -681,10 +784,6 @@
         localStorage.removeItem("eggTimerState");
       };
 
-      const isNotificationAvailable = () => {
-        return "serviceWorker" in navigator && "Notification" in window;
-      };
-
       const isPwaMode = () => {
         return (
           window.matchMedia("(display-mode: standalone)").matches ||
@@ -692,55 +791,49 @@
         );
       };
 
-      const registerNotificationWorker = async () => {
-        if (!isNotificationAvailable() || window.location.protocol === "file:") return null;
-
-        notificationRegistrationPromise ||= navigator.serviceWorker.register("./sw.js");
-        return notificationRegistrationPromise;
+      const isIos = () => {
+        return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
       };
 
-      const requestNotificationPermission = async () => {
-        if (!isNotificationAvailable()) return false;
+      const isInstallDismissed = () => {
+        return localStorage.getItem(INSTALL_DISMISSED_KEY) === "true";
+      };
 
-        if (Notification.permission === "granted") return true;
-        if (Notification.permission === "denied") return false;
+      const hideInstallPrompt = () => {
+        installPromptEl.classList.remove("show");
+        installGuideEl.classList.remove("show");
+      };
 
-        try {
-          const permission = await Notification.requestPermission();
-          return permission === "granted";
-        } catch {
-          return false;
+      const showInstallPrompt = (message) => {
+        if (isPwaMode() || isInstallDismissed()) return;
+
+        installTextEl.textContent = message;
+        installPromptEl.classList.add("show");
+      };
+
+      const updateInstallPrompt = () => {
+        if (isPwaMode() || isInstallDismissed()) {
+          hideInstallPrompt();
+          return;
+        }
+
+        if (deferredInstallPrompt) {
+          showInstallPrompt("ホーム画面に追加できます");
+          return;
+        }
+
+        if (isIos()) {
+          showInstallPrompt("ホーム画面に追加できます");
         }
       };
 
-      const initializeNotifications = async () => {
-        if (!isNotificationAvailable() || window.location.protocol === "file:") return;
+      const registerServiceWorker = async () => {
+        if (!("serviceWorker" in navigator) || window.location.protocol === "file:") return;
 
         try {
-          await registerNotificationWorker();
+          await navigator.serviceWorker.register("./sw.js");
         } catch (error) {
-          console.error("Notification setup failed", error);
-        }
-      };
-
-      const sendNotification = async (message) => {
-        if (!isNotificationAvailable() || Notification.permission !== "granted") return;
-
-        try {
-          const registration = await registerNotificationWorker();
-          await navigator.serviceWorker.ready;
-          await registration.showNotification("ゆで卵タイマー", {
-            body: message,
-            badge: "./icon-512.png",
-            icon: "./icon-512.png",
-            tag: "yude-tamago-timer",
-            renotify: true,
-            data: {
-              url: new URL("./", window.location.href).href,
-            },
-          });
-        } catch (error) {
-          console.error("Notification send failed", error);
+          console.error("Service worker setup failed", error);
         }
       };
 
@@ -774,7 +867,6 @@
         toastEl.textContent = message;
         toastEl.classList.add("show");
         window.setTimeout(() => toastEl.classList.remove("show"), 4200);
-        sendNotification(message);
       };
 
       const requestWakeLock = async () => {
@@ -1004,8 +1096,6 @@
       };
 
       const startTimer = async () => {
-        await requestNotificationPermission();
-
         ensureAudioContext();
         requestWakeLock();
 
@@ -1080,6 +1170,33 @@
         });
       });
 
+      installButton.addEventListener("click", async () => {
+        if (deferredInstallPrompt) {
+          const promptEvent = deferredInstallPrompt;
+          deferredInstallPrompt = null;
+          hideInstallPrompt();
+          promptEvent.prompt();
+
+          try {
+            await promptEvent.userChoice;
+          } catch {
+            showInstallPrompt("ホーム画面に追加できます");
+          }
+          return;
+        }
+
+        installGuideEl.classList.add("show");
+      });
+
+      installDismissButton.addEventListener("click", () => {
+        localStorage.setItem(INSTALL_DISMISSED_KEY, "true");
+        hideInstallPrompt();
+      });
+
+      installGuideCloseButton.addEventListener("click", () => {
+        installGuideEl.classList.remove("show");
+      });
+
       startButton.addEventListener("click", () => {
         if (isFinished) {
           resetTimer();
@@ -1091,7 +1208,8 @@
       stopButton.addEventListener("click", () => stopTimer());
 
       updateSoundSelection();
-      initializeNotifications();
+      registerServiceWorker();
+      updateInstallPrompt();
       if (!restoreTimerState()) {
         updateIdleDisplay();
       }
@@ -1105,6 +1223,15 @@
       window.addEventListener("focus", catchUpTimer);
       window.addEventListener("pageshow", catchUpTimer);
       window.addEventListener("pagehide", saveTimerState);
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        updateInstallPrompt();
+      });
+      window.addEventListener("appinstalled", () => {
+        deferredInstallPrompt = null;
+        hideInstallPrompt();
+      });
 
     </script>
   </body>
