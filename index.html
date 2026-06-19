@@ -65,10 +65,15 @@
 
       h1 {
         margin: 0;
-        font-size: clamp(1.72rem, 9vw, 2.4rem);
         line-height: 1;
-        letter-spacing: 0;
         text-align: center;
+      }
+
+      .title-logo {
+        display: block;
+        width: min(344px, 92vw);
+        height: auto;
+        margin: 0 auto;
       }
 
       .kitchen {
@@ -649,7 +654,9 @@
     <main class="app">
       <section class="hero" aria-labelledby="title">
         <div>
-          <h1 id="title">ゆで卵タイマー</h1>
+          <h1 id="title">
+            <img class="title-logo" src="./title-logo.svg" alt="ゆで卵タイマー" />
+          </h1>
         </div>
 
         <div class="kitchen" aria-hidden="true">
