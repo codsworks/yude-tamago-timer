@@ -76,9 +76,41 @@
         margin: 0 auto;
       }
 
+      .guide-button {
+        position: absolute;
+        top: 50%;
+        min-width: 64px;
+        height: 34px;
+        border: 0;
+        border-radius: 999px;
+        padding: 0 9px;
+        background: #fffef8;
+        color: #287c91;
+        font-size: 0.78rem;
+        font-weight: 950;
+        box-shadow: 0 3px 0 rgba(40, 124, 145, 0.22);
+        transform: translateY(-50%);
+        cursor: pointer;
+        z-index: 8;
+      }
+
+      .guide-button.home {
+        left: 4px;
+      }
+
+      .guide-button.share {
+        right: 4px;
+      }
+
+      .guide-button[hidden] {
+        display: none;
+      }
+
       .kitchen {
         position: relative;
-        min-height: 118px;
+        min-height: 102px;
+        margin-top: -10px;
+        margin-bottom: -12px;
         display: grid;
         place-items: center;
       }
@@ -143,6 +175,7 @@
         position: relative;
         width: min(226px, 72vw);
         aspect-ratio: 1.24;
+        transform: translateY(-8px);
       }
 
       .plate-scene {
@@ -150,6 +183,7 @@
         display: none;
         width: min(226px, 72vw);
         aspect-ratio: 1.24;
+        transform: translateY(-8px);
       }
 
       .app.finished .pot-scene {
@@ -745,6 +779,181 @@
         color: #fff;
       }
 
+      .info-modal {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        background: #fff7df;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+          opacity 0.22s ease,
+          visibility 0.22s ease;
+        z-index: 30;
+      }
+
+      .info-modal.open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .info-dialog {
+        width: 100%;
+        max-width: 430px;
+        height: 100svh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        overflow: hidden;
+        border: 0;
+        border-radius: 0;
+        background: #fff7df;
+        box-shadow: none;
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.24s ease;
+      }
+
+      .info-modal.open .info-dialog {
+        transform: translateY(0) scale(1);
+      }
+
+      .info-header {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 60px;
+        padding: 10px 56px;
+        background: #fffef8;
+        border-bottom: 2px solid rgba(243, 177, 56, 0.32);
+      }
+
+      .info-title {
+        margin: 0;
+        color: #d76b2a;
+        font-size: 1rem;
+        font-weight: 950;
+        text-align: center;
+      }
+
+      .info-close {
+        position: absolute;
+        top: 10px;
+        left: 8px;
+        width: 42px;
+        height: 40px;
+        border: 0;
+        border-radius: 12px;
+        background: #f0f4f5;
+        color: #52636a;
+        font-size: 1.2rem;
+        font-weight: 950;
+        box-shadow: 0 3px 0 #cbd5d8;
+        cursor: pointer;
+      }
+
+      .info-body {
+        display: grid;
+        gap: 12px;
+        overflow-y: auto;
+        padding: 12px;
+      }
+
+      .info-dialog.share-mode .info-body {
+        align-content: start;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .info-dialog.home-mode .info-body {
+        align-content: start;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .info-section {
+        padding: 12px;
+        border: 2px solid rgba(255, 188, 69, 0.52);
+        border-radius: 16px;
+        background: #fffef8;
+      }
+
+      .info-dialog.share-mode .info-section {
+        padding: 8px;
+      }
+
+      .info-dialog.home-mode .info-section {
+        padding: 8px;
+      }
+
+      .info-section[hidden] {
+        display: none;
+      }
+
+      .info-section h2 {
+        margin: 0 0 8px;
+        color: #a45f15;
+        font-size: 0.92rem;
+        font-weight: 950;
+      }
+
+      .info-section p,
+      .info-section ol {
+        margin: 0;
+        color: #3f4a50;
+        font-size: 0.86rem;
+        font-weight: 850;
+        line-height: 1.55;
+      }
+
+      .info-section ol {
+        padding-left: 1.35em;
+      }
+
+      .qr-box {
+        display: grid;
+        place-items: center;
+        gap: 4px;
+        padding-block: 6px;
+      }
+
+      .qr-box h2 {
+        margin-bottom: 4px;
+      }
+
+      .qr-box canvas {
+        width: 190px;
+        height: 190px;
+        border: 4px solid #fff;
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .share-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .share-method {
+        margin-bottom: 8px;
+        padding-bottom: 18px;
+      }
+
+      .share-button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 12px;
+        background: #58bed0;
+        color: #fff;
+        font-weight: 950;
+        box-shadow: 0 3px 0 rgba(32, 97, 113, 0.34);
+        cursor: pointer;
+      }
+
       .toast {
         position: fixed;
         left: 50%;
@@ -762,7 +971,7 @@
         transition:
           transform 0.22s ease,
           opacity 0.22s ease;
-        z-index: 10;
+        z-index: 40;
       }
 
       .toast.show {
@@ -787,22 +996,61 @@
           min-height: 40px;
         }
       }
+
+      @media (max-height: 700px) {
+        .app {
+          gap: 5px;
+          padding-block: 6px 8px;
+        }
+
+        .kitchen {
+          min-height: 88px;
+          margin-top: -16px;
+          margin-bottom: -16px;
+        }
+
+        .pot-scene,
+        .plate-scene {
+          width: min(202px, 68vw);
+          transform: translateY(-14px);
+        }
+
+        .guide-button {
+          min-width: 58px;
+          height: 32px;
+          font-size: 0.74rem;
+        }
+
+        .guide-button.home {
+          left: 0;
+        }
+
+        .guide-button.share {
+          right: 0;
+        }
+
+        .timer-panel {
+          padding: 10px;
+        }
+      }
     </style>
   </head>
   <body>
     <main class="app">
       <section class="hero" aria-labelledby="title">
-        <div>
+        <div class="title-row">
           <h1 id="title">
             <img class="title-logo" src="./title-logo.svg" alt="ゆで卵タイマー" />
           </h1>
         </div>
 
-        <div class="kitchen" aria-hidden="true">
-          <span class="steam"></span>
-          <span class="steam"></span>
-          <span class="steam"></span>
-          <div class="pot-scene">
+        <div class="kitchen">
+          <button class="guide-button home" id="openHomeGuide" type="button" aria-label="ホームに追加の案内を開く">ホームに追加</button>
+          <button class="guide-button share" id="openShareGuide" type="button" aria-label="シェアを開く">シェア</button>
+          <span class="steam" aria-hidden="true"></span>
+          <span class="steam" aria-hidden="true"></span>
+          <span class="steam" aria-hidden="true"></span>
+          <div class="pot-scene" aria-hidden="true">
             <div class="lid"></div>
             <div class="egg one"></div>
             <div class="egg two"></div>
@@ -811,7 +1059,7 @@
             <span class="flame"></span>
             <span class="flame"></span>
           </div>
-          <div class="plate-scene">
+          <div class="plate-scene" aria-hidden="true">
             <div class="finished-egg one"></div>
             <div class="finished-egg two"></div>
             <div class="plate"></div>
@@ -829,7 +1077,7 @@
             2. 冷蔵庫から卵をだして鍋にいれる
             3. 鍋を火にかける
             4. 沸騰したら中火にして蓋をする
-            5. スタートをタップ
+            5. スタートをタップ！
           </p>
         </div>
 
@@ -867,6 +1115,46 @@
       </div>
     </div>
 
+    <div class="info-modal" id="infoModal" aria-hidden="true">
+      <div class="info-dialog" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+        <div class="info-header">
+          <button class="info-close" id="closeInfo" type="button" aria-label="閉じる">×</button>
+          <p class="info-title" id="infoTitle">アプリ案内</p>
+        </div>
+        <div class="info-body">
+          <section class="info-section" data-info-mode="home">
+            <h2>iPhoneでホームに追加</h2>
+            <ol>
+              <li>共有ボタンをタップします。</li>
+              <li>「ホーム画面に追加」を選びます。</li>
+            </ol>
+          </section>
+
+          <section class="info-section" data-info-mode="home">
+            <h2>Androidでホームに追加</h2>
+            <ol>
+              <li>メニューをタップします。</li>
+              <li>「ホーム画面に追加」または「アプリをインストール」を選びます。</li>
+            </ol>
+          </section>
+
+          <section class="info-section qr-box" data-info-mode="share">
+            <h2>シェア用QRコード</h2>
+            <canvas id="shareQr" width="220" height="220" role="img" aria-label="ゆで卵タイマーのQRコード"></canvas>
+          </section>
+
+          <section class="info-section share-method" data-info-mode="share">
+            <h2>シェア方法</h2>
+            <p>QRコードを見せるか、共有ボタンでURLを送れます。</p>
+            <div class="share-actions">
+              <button class="share-button" id="shareApp" type="button">共有</button>
+              <button class="share-button" id="copyAppUrl" type="button">URLコピー</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -878,9 +1166,17 @@
       const timeEl = document.querySelector("#time");
       const startButton = document.querySelector("#start");
       const stopButton = document.querySelector("#stop");
+      const openHomeGuideButton = document.querySelector("#openHomeGuide");
+      const openShareGuideButton = document.querySelector("#openShareGuide");
+      const closeInfoButton = document.querySelector("#closeInfo");
       const openSamplesButton = document.querySelector("#openSamples");
       const closeSamplesButton = document.querySelector("#closeSamples");
       const confirmSampleButton = document.querySelector("#confirmSample");
+      const infoModal = document.querySelector("#infoModal");
+      const infoDialog = document.querySelector(".info-dialog");
+      const shareAppButton = document.querySelector("#shareApp");
+      const copyAppUrlButton = document.querySelector("#copyAppUrl");
+      const shareQrEl = document.querySelector("#shareQr");
       const sampleModal = document.querySelector("#sampleModal");
       const modalSampleList = document.querySelector("#modalSampleList");
       const choiceButtons = [...document.querySelectorAll(".choice")];
@@ -890,6 +1186,8 @@
       const toastEl = document.querySelector("#toast");
 
       const ALARM_VOLUME = 100;
+      const SHARE_URL = "https://codsworks.github.io/yude-tamago-timer/";
+      const SHARE_QR_MATRIX = ["11111110001010001001101111111","10000010101000011000001000001","10111010000010111000001011101","10111010111011100101001011101","10111010010000001011101011101","10000010110111111110001000001","11111110101010101010101111111","00000000011100110010100000000","11111011110101110110110101010","01010001001011001111101110001","01101110101001110100100100000","11011101000010111010001011010","10110011111011011101000101100","00011000110001001111111110001","00101110000110111010101011100","01000001000100111001101110010","11110111010111100100000001100","10100101011010100111101110101","10000111000000111100010100100","10011001110100011001111100010","10100111100111110111111110111","00000000111111001110100011111","11111110101010010101101011100","10000010011110111000100010011","10111010101001110100111110101","10111010110101001101100001111","10111010101000111010011111110","10000010101000111001111101010","11111110111011111101001010100"];
       const ALARM_SAMPLES = [
         {
           id: 2,
@@ -1016,6 +1314,7 @@
       let selectedSound = ALARM_SAMPLES.some((sample) => sample.id === savedSound) ? savedSound : 2;
       let pendingSound = null;
       let debugSamples = null;
+      let lastInfoTrigger = openShareGuideButton;
 
       const formatTime = (seconds) => {
         const safeSeconds = Math.max(0, Math.ceil(seconds));
@@ -1093,7 +1392,7 @@
         timeEl.textContent = formatTime(FIRST_ALARM_SECONDS);
         updateInstruction(
           "準備",
-          "1. 鍋に1cmの水を入れる\n2. 冷蔵庫から卵をだして鍋にいれる\n3. 鍋を火にかける\n4. 沸騰したら中火にして蓋をする\n5. スタートをタップ"
+          "1. 鍋に1cmの水を入れる\n2. 冷蔵庫から卵をだして鍋にいれる\n3. 鍋を火にかける\n4. 沸騰したら中火にして蓋をする\n5. スタートをタップ！"
         );
       };
 
@@ -1101,6 +1400,78 @@
         toastEl.textContent = message;
         toastEl.classList.add("show");
         window.setTimeout(() => toastEl.classList.remove("show"), 6000);
+      };
+
+      const setupShareGuide = () => {
+        const context = shareQrEl.getContext("2d");
+        const size = shareQrEl.width;
+        const quiet = 4;
+        const modules = SHARE_QR_MATRIX.length;
+        const cell = size / (modules + quiet * 2);
+
+        context.fillStyle = "#fff";
+        context.fillRect(0, 0, size, size);
+        context.fillStyle = "#111";
+        SHARE_QR_MATRIX.forEach((row, y) => {
+          [...row].forEach((value, x) => {
+            if (value === "1") {
+              context.fillRect((x + quiet) * cell, (y + quiet) * cell, cell, cell);
+            }
+          });
+        });
+      };
+
+      const openInfoModal = (mode, trigger) => {
+        lastInfoTrigger = trigger;
+        document.querySelectorAll("[data-info-mode]").forEach((section) => {
+          section.hidden = section.dataset.infoMode !== mode;
+        });
+        if (mode === "share") {
+          setupShareGuide();
+        }
+        infoDialog.classList.toggle("share-mode", mode === "share");
+        infoDialog.classList.toggle("home-mode", mode === "home");
+        document.querySelector("#infoTitle").textContent =
+          mode === "home" ? "ホームに追加" : "シェア";
+        infoModal.classList.add("open");
+        infoModal.setAttribute("aria-hidden", "false");
+        closeInfoButton.focus();
+      };
+
+      const closeInfoModal = () => {
+        infoModal.classList.remove("open");
+        infoModal.setAttribute("aria-hidden", "true");
+        lastInfoTrigger.focus();
+      };
+
+      const updateGuideButtons = () => {
+        openHomeGuideButton.hidden = isPwaMode();
+      };
+
+      const shareApp = async () => {
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: "ゆで卵タイマー",
+              text: "ゆで卵タイマー",
+              url: SHARE_URL,
+            });
+            return;
+          } catch {
+            return;
+          }
+        }
+
+        await copyShareUrl();
+      };
+
+      const copyShareUrl = async () => {
+        try {
+          await navigator.clipboard.writeText(SHARE_URL);
+          showToast("URLをコピーしました");
+        } catch {
+          showToast(SHARE_URL);
+        }
       };
 
       const requestWakeLock = async () => {
@@ -1464,6 +1835,14 @@
         startTimer();
       });
       stopButton.addEventListener("click", () => stopTimer());
+      openHomeGuideButton.addEventListener("click", () => openInfoModal("home", openHomeGuideButton));
+      openShareGuideButton.addEventListener("click", () => openInfoModal("share", openShareGuideButton));
+      closeInfoButton.addEventListener("click", closeInfoModal);
+      shareAppButton.addEventListener("click", shareApp);
+      copyAppUrlButton.addEventListener("click", copyShareUrl);
+      infoModal.addEventListener("click", (event) => {
+        if (event.target === infoModal) closeInfoModal();
+      });
       openSamplesButton.addEventListener("click", openSampleModal);
       closeSamplesButton.addEventListener("click", closeSampleModal);
       confirmSampleButton.addEventListener("click", selectDebugSample);
@@ -1471,6 +1850,11 @@
         if (event.target === sampleModal) closeSampleModal();
       });
       document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && infoModal.classList.contains("open")) {
+          closeInfoModal();
+          return;
+        }
+
         if (event.key === "Escape" && sampleModal.classList.contains("open")) {
           closeSampleModal();
         }
@@ -1478,6 +1862,7 @@
 
       updateSoundSelection();
       updateChoiceSelection();
+      updateGuideButtons();
       registerServiceWorker();
       if (!restoreTimerState()) {
         updateIdleDisplay();
