@@ -426,7 +426,7 @@
         min-height: 64px;
         border: 0;
         border-radius: 15px;
-        padding: 10px 12px;
+        padding: 10px 8px;
         color: #fff;
         background: var(--ink);
         font-weight: 950;
@@ -565,13 +565,12 @@
       }
 
       .alarm-samples {
-        grid-template-columns: repeat(4, 1fr);
         margin-top: 10px;
-        gap: 7px;
       }
 
       .sample {
-        min-height: 44px;
+        width: 100%;
+        min-height: 46px;
         border: 2px solid #d9edf0;
         border-radius: 14px;
         background: linear-gradient(180deg, #ffffff 0%, #eef9fb 100%);
@@ -601,6 +600,149 @@
         border-color: #287c91;
         background: linear-gradient(180deg, #58bed0 0%, #2f93a8 100%);
         box-shadow: 0 4px 0 rgba(32, 97, 113, 0.34);
+      }
+
+      .sample-modal {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        background: #fff7df;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+          opacity 0.22s ease,
+          visibility 0.22s ease;
+        z-index: 20;
+      }
+
+      .sample-modal.open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .sample-dialog {
+        width: 100%;
+        max-width: 430px;
+        height: 100svh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        overflow: hidden;
+        border: 0;
+        border-radius: 0;
+        background: #fff7df;
+        box-shadow: none;
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.24s ease;
+      }
+
+      .sample-modal.open .sample-dialog {
+        transform: translateY(0) scale(1);
+      }
+
+      .sample-dialog-header {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 60px;
+        padding: 10px 12px;
+        background: #fffef8;
+        border-bottom: 2px solid rgba(243, 177, 56, 0.32);
+      }
+
+      .sample-dialog-title {
+        margin: 0;
+        color: #d76b2a;
+        font-size: 1rem;
+        font-weight: 950;
+        text-align: center;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .sample-close {
+        position: absolute;
+        left: 8px;
+        top: 10px;
+        width: 42px;
+        height: 40px;
+        border: 0;
+        border-radius: 12px;
+        background: #f0f4f5;
+        color: #52636a;
+        font-size: 1.2rem;
+        font-weight: 950;
+        line-height: 1;
+        box-shadow: 0 3px 0 #cbd5d8;
+        cursor: pointer;
+      }
+
+      .sample-confirm {
+        position: absolute;
+        right: 8px;
+        top: 10px;
+        width: 74px;
+        min-width: 74px;
+        height: 40px;
+        border: 0;
+        border-radius: 12px;
+        background: #ff8a4b;
+        color: #fff;
+        font-weight: 950;
+        box-shadow: 0 3px 0 #d7652a;
+        cursor: pointer;
+      }
+
+      .sample-confirm:disabled {
+        background: #d8e0e3;
+        color: #7e8d94;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      .modal-sample-list {
+        display: grid;
+        grid-auto-rows: max-content;
+        align-content: start;
+        gap: 5px;
+        overflow-y: auto;
+        padding: 6px 8px;
+        background: #fff7df;
+      }
+
+      .modal-sample {
+        padding: 0;
+        border: 2px solid rgba(255, 188, 69, 0.62);
+        border-radius: 15px;
+        background: #fffef8;
+        overflow: hidden;
+      }
+
+      .modal-sample.pending {
+        border-color: #287c91;
+      }
+
+      .modal-sample-button {
+        width: 100%;
+        height: 44px;
+        border: 0;
+        appearance: none;
+        display: block;
+        padding: 6px 8px;
+        background: #fffef8;
+        color: #273b42;
+        font-weight: 950;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .modal-sample.pending .modal-sample-button {
+        background: linear-gradient(180deg, #58bed0 0%, #2f93a8 100%);
+        color: #fff;
       }
 
       .toast {
@@ -703,11 +845,8 @@
           </button>
         </div>
 
-        <div class="alarm-samples" role="group" aria-label="アラーム音サンプル">
-          <button class="sample active" type="button" data-sound="1" aria-label="アラーム音サンプル1">♪1</button>
-          <button class="sample" type="button" data-sound="2" aria-label="アラーム音サンプル2">♪2</button>
-          <button class="sample" type="button" data-sound="3" aria-label="アラーム音サンプル3">♪3</button>
-          <button class="sample" type="button" data-sound="4" aria-label="アラーム音サンプル4">♪4</button>
+        <div class="alarm-samples" role="group" aria-label="アラーム選択">
+          <button class="sample active" id="openSamples" type="button">♪ふわっと上昇</button>
         </div>
 
         <div class="controls">
@@ -717,6 +856,17 @@
       </section>
     </main>
 
+    <div class="sample-modal" id="sampleModal" aria-hidden="true">
+      <div class="sample-dialog" role="dialog" aria-modal="true" aria-labelledby="sampleDialogTitle">
+        <div class="sample-dialog-header">
+          <button class="sample-close" id="closeSamples" type="button" aria-label="閉じる">×</button>
+          <p class="sample-dialog-title" id="sampleDialogTitle">アラーム選択</p>
+          <button class="sample-confirm" id="confirmSample" type="button">決定</button>
+        </div>
+        <div class="modal-sample-list" id="modalSampleList"></div>
+      </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -724,18 +874,127 @@
       const FIRST_ALARM_SECONDS = IS_DEBUG ? 8 : 4 * 60;
 
       const appEl = document.querySelector(".app");
+      appEl.classList.toggle("debug", IS_DEBUG);
       const timeEl = document.querySelector("#time");
       const startButton = document.querySelector("#start");
       const stopButton = document.querySelector("#stop");
+      const openSamplesButton = document.querySelector("#openSamples");
+      const closeSamplesButton = document.querySelector("#closeSamples");
+      const confirmSampleButton = document.querySelector("#confirmSample");
+      const sampleModal = document.querySelector("#sampleModal");
+      const modalSampleList = document.querySelector("#modalSampleList");
       const choiceButtons = [...document.querySelectorAll(".choice")];
       const sampleButtons = [...document.querySelectorAll(".sample")];
       const instructionLabelEl = document.querySelector("#instructionLabel");
       const instructionTextEl = document.querySelector("#instructionText");
       const toastEl = document.querySelector("#toast");
 
-      const ALARM_VOLUME = 1;
+      const ALARM_VOLUME = 100;
+      const ALARM_SAMPLES = [
+        {
+          id: 2,
+          name: "ふわっと上昇",
+          gap: 0.6,
+          notes: [
+            { frequency: 523, at: 0, duration: 0.13, type: "sine", volume: 0.04 },
+            { frequency: 784, at: 0.11, duration: 0.16, type: "sine", volume: 0.045 },
+            { frequency: 1047, at: 0.25, duration: 0.24, type: "triangle", volume: 0.038 },
+            { frequency: 2093, at: 0.3, duration: 0.14, type: "sine", volume: 0.018 },
+          ],
+        },
+        {
+          id: 5,
+          name: "朝のベル",
+          gap: 0.75,
+          notes: [
+            { frequency: 698, at: 0, duration: 0.14, type: "sine", volume: 0.033 },
+            { frequency: 1047, at: 0.15, duration: 0.2, type: "triangle", volume: 0.03 },
+            { frequency: 1397, at: 0.36, duration: 0.2, type: "sine", volume: 0.022 },
+          ],
+        },
+        {
+          id: 7,
+          name: "キッチンチャイム",
+          gap: 0.72,
+          notes: [
+            { frequency: 880, at: 0, duration: 0.12, type: "sine", volume: 0.032 },
+            { frequency: 880, at: 0.18, duration: 0.12, type: "sine", volume: 0.032 },
+            { frequency: 1175, at: 0.38, duration: 0.18, type: "triangle", volume: 0.028 },
+          ],
+        },
+        {
+          id: 8,
+          name: "小さなファンファーレ",
+          gap: 0.88,
+          notes: [
+            { frequency: 523, at: 0, duration: 0.11, type: "triangle", volume: 0.035 },
+            { frequency: 659, at: 0.12, duration: 0.11, type: "triangle", volume: 0.035 },
+            { frequency: 784, at: 0.24, duration: 0.14, type: "triangle", volume: 0.034 },
+            { frequency: 1047, at: 0.4, duration: 0.28, type: "sine", volume: 0.028 },
+          ],
+        },
+        {
+          id: 9,
+          name: "お知らせコロン",
+          gap: 0.58,
+          notes: [
+            { frequency: 784, at: 0, duration: 0.16, type: "sine", volume: 0.034 },
+            { frequency: 1047, at: 0.18, duration: 0.22, type: "sine", volume: 0.03 },
+          ],
+        },
+        {
+          id: 12,
+          name: "ころころベル",
+          gap: 0.7,
+          notes: [
+            { frequency: 1047, at: 0, duration: 0.08, type: "sine", volume: 0.028 },
+            { frequency: 1319, at: 0.1, duration: 0.08, type: "sine", volume: 0.026 },
+            { frequency: 1047, at: 0.2, duration: 0.08, type: "sine", volume: 0.028 },
+            { frequency: 1568, at: 0.34, duration: 0.16, type: "triangle", volume: 0.022 },
+          ],
+        },
+        {
+          id: 14,
+          name: "ポンポンチャイム",
+          gap: 0.64,
+          notes: [
+            { frequency: 494, at: 0, duration: 0.11, type: "triangle", volume: 0.04 },
+            { frequency: 494, at: 0.15, duration: 0.11, type: "triangle", volume: 0.04 },
+            { frequency: 740, at: 0.32, duration: 0.18, type: "sine", volume: 0.03 },
+          ],
+        },
+        {
+          id: 15,
+          name: "クリーン通知",
+          gap: 0.62,
+          notes: [
+            { frequency: 1047, at: 0, duration: 0.12, type: "sine", volume: 0.03 },
+            { frequency: 1319, at: 0.17, duration: 0.14, type: "sine", volume: 0.026 },
+          ],
+        },
+        {
+          id: 17,
+          name: "ミニマルベル",
+          gap: 0.7,
+          notes: [
+            { frequency: 880, at: 0, duration: 0.18, type: "sine", volume: 0.032 },
+            { frequency: 1760, at: 0.04, duration: 0.14, type: "sine", volume: 0.01 },
+            { frequency: 1175, at: 0.28, duration: 0.18, type: "triangle", volume: 0.026 },
+          ],
+        },
+        {
+          id: 19,
+          name: "まろやか完了",
+          gap: 0.92,
+          notes: [
+            { frequency: 523, at: 0, duration: 0.18, type: "sine", volume: 0.032 },
+            { frequency: 659, at: 0.19, duration: 0.18, type: "sine", volume: 0.028 },
+            { frequency: 784, at: 0.4, duration: 0.28, type: "triangle", volume: 0.026 },
+          ],
+        },
+      ];
       const savedSoundText = localStorage.getItem("eggTimerSound");
-      const savedSound = savedSoundText === null ? 1 : Number(savedSoundText);
+      const savedSound = savedSoundText === null ? 2 : Number(savedSoundText);
       const savedAfterText = localStorage.getItem("eggTimerAfterSeconds");
       const savedAfterSeconds = savedAfterText === null ? 240 : Number(savedAfterText);
       const savedAfterButton =
@@ -754,7 +1013,9 @@
       let isFinished = false;
       let audioContext = null;
       let wakeLock = null;
-      let selectedSound = Number.isFinite(savedSound) ? savedSound : 1;
+      let selectedSound = ALARM_SAMPLES.some((sample) => sample.id === savedSound) ? savedSound : 2;
+      let pendingSound = null;
+      let debugSamples = null;
 
       const formatTime = (seconds) => {
         const safeSeconds = Math.max(0, Math.ceil(seconds));
@@ -866,9 +1127,97 @@
       };
 
       const updateSoundSelection = () => {
-        sampleButtons.forEach((button) => {
-          button.classList.toggle("active", Number(button.dataset.sound) === selectedSound);
+        loadDebugSamples().then((samples) => {
+          const selectedSample = samples.find((sample) => sample.id === selectedSound) || samples[0];
+          if (selectedSample) {
+            openSamplesButton.textContent = `♪${selectedSample.name}`;
+            openSamplesButton.setAttribute("aria-label", `アラーム選択: ${selectedSample.name}`);
+          }
+
+          modalSampleList.querySelectorAll(".modal-sample").forEach((card) => {
+            card.classList.toggle("pending", Number(card.dataset.sound) === pendingSound);
+          });
         });
+      };
+
+      const loadDebugSamples = async () => {
+        if (debugSamples) return debugSamples;
+
+        debugSamples = ALARM_SAMPLES;
+        return debugSamples;
+      };
+
+      const playDebugSample = async (sample) => {
+        pendingSound = sample.id;
+        updateSoundSelection();
+        confirmSampleButton.disabled = false;
+
+        const canPlay = await ensureAudioContext();
+        if (!canPlay) return;
+
+        const now = audioContext.currentTime;
+        for (let i = 0; i < 2; i += 1) {
+          const offset = i * sample.gap;
+          sample.notes.forEach((note) => {
+            playTone(
+              note.frequency,
+              now + offset + note.at,
+              note.duration,
+              note.type,
+              note.volume,
+              note.endFrequency ?? note.frequency
+            );
+          });
+        }
+      };
+
+      const selectDebugSample = () => {
+        if (pendingSound === null) return;
+
+        selectedSound = pendingSound;
+        localStorage.setItem("eggTimerSound", String(selectedSound));
+        updateSoundSelection();
+        closeSampleModal();
+      };
+
+      const renderDebugSamples = async () => {
+        if (modalSampleList.children.length) return;
+
+        modalSampleList.textContent = "読み込み中...";
+        const samples = await loadDebugSamples();
+        modalSampleList.textContent = "";
+
+        samples.forEach((sample) => {
+          const card = document.createElement("article");
+          card.className = "modal-sample";
+          card.dataset.sound = String(sample.id);
+          card.innerHTML = `
+            <button class="modal-sample-button" type="button" aria-label="${sample.name}を試聴">♪${sample.name}</button>
+          `;
+          card
+            .querySelector(".modal-sample-button")
+            .addEventListener("click", () => playDebugSample(sample));
+          modalSampleList.append(card);
+        });
+        updateSoundSelection();
+      };
+
+      const openSampleModal = async () => {
+        pendingSound = selectedSound;
+        await renderDebugSamples();
+        confirmSampleButton.disabled = false;
+        updateSoundSelection();
+        sampleModal.classList.add("open");
+        sampleModal.setAttribute("aria-hidden", "false");
+        confirmSampleButton.focus();
+      };
+
+      const closeSampleModal = () => {
+        pendingSound = null;
+        updateSoundSelection();
+        sampleModal.classList.remove("open");
+        sampleModal.setAttribute("aria-hidden", "true");
+        openSamplesButton.focus();
       };
 
       const ensureAudioContext = async () => {
@@ -897,7 +1246,7 @@
         }
 
         gain.gain.setValueAtTime(0.0001, startsAt);
-        gain.gain.exponentialRampToValueAtTime(volume * ALARM_VOLUME, startsAt + 0.025);
+        gain.gain.exponentialRampToValueAtTime(volume * ALARM_VOLUME, startsAt + 0.028);
         gain.gain.exponentialRampToValueAtTime(0.0001, startsAt + duration);
         oscillator.connect(gain).connect(audioContext.destination);
         oscillator.start(startsAt);
@@ -909,9 +1258,13 @@
         if (!canPlay) return;
 
         const now = audioContext.currentTime;
+        const samples = await loadDebugSamples();
+        const sound = samples.find((sample) => sample.id === selectedSound) || samples[0];
+        if (!sound) return;
 
-        const playPattern = (offset, notes) => {
-          notes.forEach((note) => {
+        for (let i = 0; i < count; i += 1) {
+          const offset = i * sound.gap;
+          sound.notes.forEach((note) => {
             playTone(
               note.frequency,
               now + offset + note.at,
@@ -921,51 +1274,6 @@
               note.endFrequency ?? note.frequency
             );
           });
-        };
-
-        if (selectedSound === 2) {
-          for (let i = 0; i < count; i += 1) {
-            playPattern(i * 0.62, [
-              { frequency: 988, at: 0, duration: 0.09, type: "triangle", volume: 0.3 },
-              { frequency: 1319, at: 0.1, duration: 0.09, type: "triangle", volume: 0.28 },
-              { frequency: 988, at: 0.2, duration: 0.09, type: "triangle", volume: 0.3 },
-              { frequency: 1568, at: 0.32, duration: 0.18, type: "sine", volume: 0.24 },
-            ]);
-          }
-          return;
-        }
-
-        if (selectedSound === 3) {
-          for (let i = 0; i < count; i += 1) {
-            playPattern(i * 0.7, [
-              { frequency: 698, at: 0, duration: 0.48, type: "sine", volume: 0.26, endFrequency: 660 },
-              { frequency: 1397, at: 0.02, duration: 0.34, type: "sine", volume: 0.16, endFrequency: 1319 },
-              { frequency: 2093, at: 0.05, duration: 0.22, type: "triangle", volume: 0.08 },
-            ]);
-          }
-          return;
-        }
-
-        if (selectedSound === 4) {
-          for (let i = 0; i < count; i += 1) {
-            playPattern(i * 0.82, [
-              { frequency: 392, at: 0, duration: 0.16, type: "triangle", volume: 0.3 },
-              { frequency: 523, at: 0.14, duration: 0.16, type: "triangle", volume: 0.32 },
-              { frequency: 659, at: 0.28, duration: 0.16, type: "triangle", volume: 0.32 },
-              { frequency: 1047, at: 0.44, duration: 0.28, type: "sine", volume: 0.26 },
-              { frequency: 1319, at: 0.44, duration: 0.28, type: "sine", volume: 0.14 },
-            ]);
-          }
-          return;
-        }
-
-        for (let i = 0; i < count; i += 1) {
-          playPattern(i * 0.6, [
-            { frequency: 523, at: 0, duration: 0.13, type: "sine", volume: 0.32 },
-            { frequency: 784, at: 0.11, duration: 0.16, type: "sine", volume: 0.36 },
-            { frequency: 1047, at: 0.25, duration: 0.24, type: "triangle", volume: 0.3 },
-            { frequency: 2093, at: 0.3, duration: 0.14, type: "sine", volume: 0.12 },
-          ]);
         }
       };
 
@@ -1102,7 +1410,10 @@
           firstAlarmAt = Number(state.firstAlarmAt);
           firstAlarmPlayed = Boolean(state.firstAlarmPlayed);
           isFinished = Boolean(state.isFinished);
-          selectedSound = Number(state.selectedSound) || selectedSound;
+          const restoredSound = Number(state.selectedSound);
+          selectedSound = ALARM_SAMPLES.some((sample) => sample.id === restoredSound)
+            ? restoredSound
+            : selectedSound;
           startedAt = Number(state.startedAt);
         } catch {
           clearTimerState();
@@ -1144,15 +1455,6 @@
         });
       });
 
-      sampleButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          selectedSound = Number(button.dataset.sound);
-          localStorage.setItem("eggTimerSound", String(selectedSound));
-          updateSoundSelection();
-          playAlarmSound(2);
-        });
-      });
-
       startButton.addEventListener("click", () => {
         if (isFinished) {
           resetTimer();
@@ -1162,6 +1464,17 @@
         startTimer();
       });
       stopButton.addEventListener("click", () => stopTimer());
+      openSamplesButton.addEventListener("click", openSampleModal);
+      closeSamplesButton.addEventListener("click", closeSampleModal);
+      confirmSampleButton.addEventListener("click", selectDebugSample);
+      sampleModal.addEventListener("click", (event) => {
+        if (event.target === sampleModal) closeSampleModal();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && sampleModal.classList.contains("open")) {
+          closeSampleModal();
+        }
+      });
 
       updateSoundSelection();
       updateChoiceSelection();
